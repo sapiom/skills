@@ -15,6 +15,8 @@ Instant access to paid services with pay-per-use pricing. No vendor account setu
    export SAPIOM_API_KEY="your_key"
    ```
 
+### Node.js (SDK)
+
 3. Install SDK:
    ```bash
    npm install @sapiom/axios axios
@@ -36,6 +38,17 @@ Instant access to paid services with pay-per-use pricing. No vendor account setu
    const fetch = createFetch({ apiKey: process.env.SAPIOM_API_KEY });
    ```
 
+### Python / Other Languages (REST API)
+
+For Python, Go, Ruby, or other languages, use the Service Proxy REST API directly. No SDK required.
+
+**Authentication:** Include your API key as a Bearer token:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+**Note:** The Service Proxy currently supports **Verify only**. Other services require the Node.js SDK.
+
 ## Services
 
 | Service | Base URL | Description |
@@ -46,7 +59,50 @@ Instant access to paid services with pay-per-use pricing. No vendor account setu
 | AI Models | `https://openrouter.services.sapiom.ai` | 400+ models (GPT-4, Claude, etc.) |
 | Images | `https://fal-ai.services.sapiom.ai` | FLUX/SDXL generation *(coming soon)* |
 
-## Endpoints
+## Service Proxy (Python / REST API)
+
+For non-Node.js languages, use the Service Proxy at `https://api.sapiom.ai/v1/services/*`.
+
+**Currently available:** Verify only. Other services coming soon.
+
+### Verify via Service Proxy
+
+| Step | Method | Endpoint | Body | Returns |
+|------|--------|----------|------|---------|
+| 1. Send code | POST | `https://api.sapiom.ai/v1/services/verify/send` | `{ "phoneNumber": "+15551234567" }` | `{ "verificationRequestId": "<uuid>" }` |
+| 2. Check code | POST | `https://api.sapiom.ai/v1/services/verify/check` | `{ "verificationRequestId": "<uuid>", "code": "123456" }` | `{ "status": "success" }` |
+
+**Python Example:**
+```python
+import requests
+import os
+
+API_KEY = os.environ.get("SAPIOM_API_KEY")
+BASE_URL = "https://api.sapiom.ai/v1/services"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+
+# Send verification code
+response = requests.post(
+    f"{BASE_URL}/verify/send",
+    headers=headers,
+    json={"phoneNumber": "+15551234567"}
+)
+request_id = response.json()["verificationRequestId"]
+
+# Check verification code (after user enters it)
+response = requests.post(
+    f"{BASE_URL}/verify/check",
+    headers=headers,
+    json={"verificationRequestId": request_id, "code": "123456"}
+)
+is_verified = response.json()["status"] == "success"
+```
+
+## Endpoints (Node.js SDK)
 
 ### Verify (2-step flow)
 
