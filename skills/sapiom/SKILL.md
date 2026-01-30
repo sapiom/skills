@@ -139,6 +139,23 @@ const { data } = await client.post(
 | AI Models | Per-token (see [OpenRouter](https://openrouter.ai/docs#models)) |
 | Images | $0.004-$0.04/megapixel |
 
+## Navigating Documentation
+
+Links within markdown docs use relative paths (e.g., `/capabilities/search`). To get the markdown version:
+
+| HTML Path | Markdown Path |
+|-----------|---------------|
+| `/capabilities/search` | `/md/capabilities/search.md` |
+| `/quick-start` | `/md/quick-start.md` |
+| `/governance` | `/md/governance.md` |
+
+**Pattern:** Prepend `/md/` and append `.md` to any doc path.
+
+**Alternative:** Use `Accept: text/markdown` header with the regular URL:
+```bash
+curl -H "Accept: text/markdown" https://docs.sapiom.ai/capabilities/search
+```
+
 ## Need More Details?
 
 Fetch the markdown documentation for complete endpoint specs, parameters, and examples:
