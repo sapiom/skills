@@ -1,6 +1,6 @@
 ---
 name: sapiom
-description: Access paid services (verification, search, AI models, image generation) for AI agents via Sapiom. Use when building agents that need to verify phone/email, search the web, call AI models, or generate images — without setting up vendor accounts.
+description: Access paid services (verification, search, AI models, images, audio, browser automation) for AI agents via Sapiom. Use when building agents that need to verify phone/email, search the web, call AI models, generate images, convert text-to-speech, or automate browsers — without setting up vendor accounts.
 ---
 
 # Sapiom
@@ -13,26 +13,23 @@ Instant access to paid services with pay-per-use pricing. No vendor account setu
 
 | Service | Documentation |
 |---------|---------------|
-| Verify | https://docs.sapiom.ai/md/capabilities/verify.md |
-| Search | https://docs.sapiom.ai/md/capabilities/search.md |
-| AI Models | https://docs.sapiom.ai/md/capabilities/ai-models.md |
-| Images | https://docs.sapiom.ai/md/capabilities/images.md |
-| Service Proxy | https://docs.sapiom.ai/md/service-proxy.md |
+| Verify | https://docs.sapiom.ai/capabilities/verify.md |
+| Search | https://docs.sapiom.ai/capabilities/search.md |
+| AI Models | https://docs.sapiom.ai/capabilities/ai-models.md |
+| Images | https://docs.sapiom.ai/capabilities/images.md |
+| Audio | https://docs.sapiom.ai/capabilities/audio.md |
+| Browser | https://docs.sapiom.ai/capabilities/browser.md |
+| Service Proxy | https://docs.sapiom.ai/service-proxy.md |
 
 ## Two Access Patterns
 
-Sapiom offers two ways to call services. Choose based on your language and needs:
+Sapiom offers two ways to call services:
 
 ### 1. Direct Access (Node.js SDK)
 
-Use the SDK to call provider gateways directly. The SDK handles payment negotiation automatically.
+Use the SDK to call provider gateways directly with native API formats.
 
-**When to use:** Node.js/TypeScript projects. Gives access to full provider API features.
-
-**Setup:**
-```bash
-npm install @sapiom/axios axios
-```
+**When to use:** Node.js/TypeScript projects, need full provider API features.
 
 ```typescript
 import { withSapiom } from "@sapiom/axios";
@@ -42,15 +39,14 @@ const client = withSapiom(axios.create(), {
   apiKey: process.env.SAPIOM_API_KEY,
 });
 
-// Example: Search with Linkup
+// Calls go to provider gateways (e.g., prelude.services.sapiom.ai)
 const { data } = await client.post(
   "https://linkup.services.sapiom.ai/v1/search",
   { query: "quantum computing", depth: "standard", outputType: "sourcedAnswer" }
 );
 ```
 
-**Provider Gateway URLs:**
-
+**Service URLs:**
 | Service | Base URL |
 |---------|----------|
 | Verify | `https://prelude.services.sapiom.ai` |
@@ -58,16 +54,15 @@ const { data } = await client.post(
 | Search (You.com) | `https://you-com.services.sapiom.ai` |
 | AI Models | `https://openrouter.services.sapiom.ai` |
 | Images | `https://fal-ai.services.sapiom.ai` |
+| Audio | `https://elevenlabs.services.sapiom.ai` |
+| Browser | `https://anchor-browser.services.sapiom.ai` |
 
 ### 2. Semantic Endpoints (Python/REST)
 
-Use simplified REST endpoints via the Service Proxy. No SDK required — just Bearer token auth.
+Use simplified REST endpoints without an SDK. Currently supports Verify only.
 
-**When to use:** Python, Go, Ruby, or any language without SDK support.
+**When to use:** Python, or any language without SDK support.
 
-**Important:** Do NOT wrap Service Proxy calls with the SDK. The proxy handles payment server-side.
-
-**Setup:**
 ```python
 import requests
 import os
@@ -77,25 +72,15 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Example: Verify a phone number
+# Calls go to unified gateway (api.sapiom.ai) with simplified schema
 resp = requests.post(
     "https://api.sapiom.ai/v1/services/verify/send",
     headers=headers,
     json={"phoneNumber": "+15551234567"}
 )
-verification_id = resp.json()["verificationRequestId"]
-
-# Check the code
-resp = requests.post(
-    "https://api.sapiom.ai/v1/services/verify/check",
-    headers=headers,
-    json={"verificationRequestId": verification_id, "code": "123456"}
-)
 ```
 
-**Available semantic endpoints:** Currently Verify only. See https://docs.sapiom.ai/md/service-proxy.md
-
-Other services (Search, AI Models, Images) require the Node.js SDK with direct access.
+**See:** https://docs.sapiom.ai/service-proxy.md for available semantic endpoints.
 
 ## Setup
 
@@ -105,22 +90,33 @@ Other services (Search, AI Models, Images) require the Node.js SDK with direct a
    export SAPIOM_API_KEY="your_key"
    ```
 
+### Node.js SDK
+
+```bash
+npm install @sapiom/axios axios
+# or
+npm install @sapiom/fetch
+```
+
+### Python
+
+No SDK required. Use REST with Bearer token authentication.
+
 ## Navigating Documentation
 
-Links within markdown docs use relative paths. To get the full markdown URL:
+Add `.md` to any docs URL to get the markdown version:
 
-| Path in docs | Markdown URL |
-|--------------|--------------|
-| `/capabilities/search` | `https://docs.sapiom.ai/md/capabilities/search.md` |
-| `/quick-start` | `https://docs.sapiom.ai/md/quick-start.md` |
-| `/service-proxy` | `https://docs.sapiom.ai/md/service-proxy.md` |
+| HTML Page | Markdown |
+|-----------|----------|
+| `https://docs.sapiom.ai/capabilities/search` | `https://docs.sapiom.ai/capabilities/search.md` |
+| `https://docs.sapiom.ai/quick-start` | `https://docs.sapiom.ai/quick-start.md` |
 
-**Pattern:** Prepend `https://docs.sapiom.ai/md/` and append `.md`
+**Pattern:** Add `.md` to any URL
 
 ## Need Details?
 
-Fetch the markdown documentation for complete endpoint specs:
+Fetch the markdown documentation:
 
 ```bash
-curl https://docs.sapiom.ai/md/capabilities/verify.md
+curl https://docs.sapiom.ai/capabilities/verify.md
 ```
