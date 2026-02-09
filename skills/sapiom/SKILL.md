@@ -19,17 +19,13 @@ Instant access to paid services with pay-per-use pricing. No vendor account setu
 | Images | https://docs.sapiom.ai/capabilities/images.md |
 | Audio | https://docs.sapiom.ai/capabilities/audio.md |
 | Browser | https://docs.sapiom.ai/capabilities/browser.md |
-| Service Proxy | https://docs.sapiom.ai/service-proxy.md |
+| Using Services | https://docs.sapiom.ai/using-services.md |
 
-## Two Access Patterns
+## How It Works
 
-Sapiom offers two ways to call services:
+The SDK wraps your HTTP client (Axios or Fetch) and automatically handles payment negotiation with Sapiom service gateways. Each service is hosted at `{provider}.services.sapiom.ai` and proxies to the underlying vendor API.
 
-### 1. Direct Access (Node.js SDK)
-
-Use the SDK to call provider gateways directly with native API formats.
-
-**When to use:** Node.js/TypeScript projects, need full provider API features.
+**When to use:** Node.js/TypeScript projects. For Python or other languages, use the SDK patterns with standard HTTP clients — the payment flow requires the SDK.
 
 ```typescript
 import { withSapiom } from "@sapiom/axios";
@@ -39,48 +35,24 @@ const client = withSapiom(axios.create(), {
   apiKey: process.env.SAPIOM_API_KEY,
 });
 
-// Calls go to provider gateways (e.g., prelude.services.sapiom.ai)
+// Search the web with Linkup
 const { data } = await client.post(
   "https://linkup.services.sapiom.ai/v1/search",
-  { query: "quantum computing", depth: "standard", outputType: "sourcedAnswer" }
+  { q: "quantum computing", depth: "standard", outputType: "sourcedAnswer" }
 );
 ```
 
 **Service URLs:**
+
 | Service | Base URL |
 |---------|----------|
 | Verify | `https://prelude.services.sapiom.ai` |
 | Search (Linkup) | `https://linkup.services.sapiom.ai` |
 | Search (You.com) | `https://you-com.services.sapiom.ai` |
 | AI Models | `https://openrouter.services.sapiom.ai` |
-| Images | `https://fal-ai.services.sapiom.ai` |
+| Images | `https://fal.services.sapiom.ai` |
 | Audio | `https://elevenlabs.services.sapiom.ai` |
 | Browser | `https://anchor-browser.services.sapiom.ai` |
-
-### 2. Semantic Endpoints (Python/REST)
-
-Use simplified REST endpoints without an SDK. Currently supports Verify only.
-
-**When to use:** Python, or any language without SDK support.
-
-```python
-import requests
-import os
-
-headers = {
-    "Authorization": f"Bearer {os.environ['SAPIOM_API_KEY']}",
-    "Content-Type": "application/json"
-}
-
-# Calls go to unified gateway (api.sapiom.ai) with simplified schema
-resp = requests.post(
-    "https://api.sapiom.ai/v1/services/verify/send",
-    headers=headers,
-    json={"phoneNumber": "+15551234567"}
-)
-```
-
-**See:** https://docs.sapiom.ai/service-proxy.md for available semantic endpoints.
 
 ## Setup
 
@@ -89,34 +61,85 @@ resp = requests.post(
    ```bash
    export SAPIOM_API_KEY="your_key"
    ```
+3. Install the SDK:
+   ```bash
+   npm install @sapiom/axios axios
+   # or
+   npm install @sapiom/fetch
+   ```
 
-### Node.js SDK
+## Quick Reference
 
-```bash
-npm install @sapiom/axios axios
-# or
-npm install @sapiom/fetch
+### Verify (Prelude)
+
+```typescript
+// Send code
+await client.post("https://prelude.services.sapiom.ai/verifications", {
+  target: { type: "phone_number", value: "+15551234567" },
+});
+// Check code
+await client.post("https://prelude.services.sapiom.ai/verifications/check", {
+  verificationRequestId: "id-from-send", code: "123456",
+});
 ```
 
-### Python
+### Search (Linkup)
 
-No SDK required. Use REST with Bearer token authentication.
+```typescript
+await client.post("https://linkup.services.sapiom.ai/v1/search", {
+  q: "query", depth: "standard", outputType: "sourcedAnswer",
+});
+```
+
+### AI Models (OpenRouter) — OpenAI-compatible
+
+```typescript
+await client.post("https://openrouter.services.sapiom.ai/v1/chat/completions", {
+  model: "openai/gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+  max_tokens: 100,
+});
+```
+
+### Images (Fal.ai)
+
+```typescript
+await client.post("https://fal.services.sapiom.ai/v1/run/fal-ai/flux/dev", {
+  prompt: "A mountain landscape at sunset", image_size: "landscape_4_3",
+});
+```
+
+### Audio (ElevenLabs)
+
+```typescript
+// TTS — returns binary audio
+await client.post(
+  "https://elevenlabs.services.sapiom.ai/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL",
+  { text: "Hello world", model_id: "eleven_multilingual_v2" },
+  { responseType: "arraybuffer" }
+);
+```
+
+### Browser (Anchor)
+
+```typescript
+// Extract content
+await client.post("https://anchor-browser.services.sapiom.ai/v1/tools/fetch-webpage", {
+  url: "https://example.com", format: "markdown",
+});
+// Screenshot
+await client.post("https://anchor-browser.services.sapiom.ai/v1/tools/screenshot", {
+  url: "https://example.com", width: 1280, height: 720,
+});
+```
 
 ## Navigating Documentation
 
-Add `.md` to any docs URL to get the markdown version:
+Append `.md` to any docs URL to get the raw markdown:
 
 | HTML Page | Markdown |
 |-----------|----------|
 | `https://docs.sapiom.ai/capabilities/search` | `https://docs.sapiom.ai/capabilities/search.md` |
-| `https://docs.sapiom.ai/quick-start` | `https://docs.sapiom.ai/quick-start.md` |
+| `https://docs.sapiom.ai/using-services` | `https://docs.sapiom.ai/using-services.md` |
 
-**Pattern:** Add `.md` to any URL
-
-## Need Details?
-
-Fetch the markdown documentation:
-
-```bash
-curl https://docs.sapiom.ai/capabilities/verify.md
-```
+**For full endpoint details, parameters, and pricing — always fetch the docs.**
